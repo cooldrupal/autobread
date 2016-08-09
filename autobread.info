@@ -1,0 +1,8 @@
+name = Autobread
+description = Automatic breadcrumbs (goodboy)
+core = 7.x
+configure = admin/config/user-interface/autobread
+
+; Information text
+version = "7.x-1.2"
+
