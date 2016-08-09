@@ -4,7 +4,6 @@
  * Autobread Settings form.
  */
 function autobread_settings_form($form, &$form_state) {
-
   $form['autobread_excluded_paths'] = array(
     '#type' => 'textarea',
     '#title' => t('Excluded paths'),
@@ -12,7 +11,6 @@ function autobread_settings_form($form, &$form_state) {
     '#description' => t('Enter a list of path that will not be affected by Autobread. You can use "*" as wildcard. [front] is front page'),
     '#rows' => 5
   );
-
   $form['autobread_set_frontpage'] = array(
     '#type' => 'checkbox',
     '#title' => t('Set frontpage link'),
@@ -35,7 +33,5 @@ function autobread_settings_form($form, &$form_state) {
     '#description' => t('Symbol that separates breadcrumbs.'),
   );
 
-
   return system_settings_form($form);
 }
-

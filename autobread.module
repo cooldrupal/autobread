@@ -42,13 +42,13 @@ function autobread_page_delivery_callback_alter() {
    $arg2 = arg(2);
 
    //Node
-   if ($arg0 == 'node' && is_numeric($arg1) ) {
-      if ( $node = node_load($arg1) ) {
+   if ($arg0 == 'node' && is_numeric($arg1)) {
+      if ( $node = node_load($arg1)) {
         $res = autobread_get_entity_taxonomy('node', $node, $node->type);
         $page_type = array();
-        if ( drupal_valid_path($node->type) ) $page_type[] = l(node_type_get_name($node), $node->type);
+        if (drupal_valid_path($node->type)) $page_type[] = l(node_type_get_name($node), $node->type);
 
-        if ( count($res) && count($page_type) ) {
+        if (count($res) && count($page_type)) {
           autobread_set_taxonomy_bread($res, $page_type);
           return;
         } 
@@ -57,42 +57,41 @@ function autobread_page_delivery_callback_alter() {
 
    //Taxonomy_term
    if ($arg0 == 'taxonomy' && $arg1 == 'term' && is_numeric($arg2)) {
-      if ( $tax = taxonomy_term_load($arg2) ) {
-           $parents = taxonomy_get_parents_all($arg2);
-           $init_crumb = array();
+    if ($tax = taxonomy_term_load($arg2)) {
+      $parents = taxonomy_get_parents_all($arg2);
+      $init_crumb = array();
 
-           //tvi support  
-           if (module_exists('tvi')) {
-                list($view, $display, $term, $settings) = tvi_get_view_info($arg2);
-                $title = autobread_get_view_title($view, $display);
-                if ($title) {
-                   $init_crumb[] = l($title, $view->get_url(0));
-                }
-           }
-
-           autobread_set_taxonomy_bread($parents, $init_crumb);
-           return;
+      //tvi support  
+      if (module_exists('tvi')) {
+        list($view, $display, $term, $settings) = tvi_get_view_info($arg2);
+        $title = autobread_get_view_title($view, $display);
+        if ($title) {
+          $init_crumb[] = l($title, $view->get_url(0));
+        }
       }
+      autobread_set_taxonomy_bread($parents, $init_crumb);
+      return;
+    }
    }
 
    //Alias
    $current_path = drupal_get_path_alias(current_path());
-   $parts = explode( "/", $current_path );
+   $parts = explode("/", $current_path);
    $bread = array();
    foreach ($parts as $part) {
-     array_pop($parts);
-     $path = implode("/",$parts);
-     if ( drupal_valid_path($path) ) {
-       $title = autobread_get_title($path);
-       if ($title) {
-         $bread[] = l($title,$path);
-       }
+    array_pop($parts);
+    $path = implode("/",$parts);
+    if ( drupal_valid_path($path) ) {
+      $title = autobread_get_title($path);
+      if ($title) {
+        $bread[] = l($title,$path);
+      }
      }   
    }
  
    if (count($bread)) {
-     autobread_set_bread($bread);
-     return;
+    autobread_set_bread($bread);
+    return;
    }
 
    //Default
@@ -105,32 +104,31 @@ function autobread_page_delivery_callback_alter() {
    else {
      $default = l($title, $current_path, array('html'=>TRUE));
    }
-   autobread_set_bread( array( $default ) );
-
+   autobread_set_bread(array($default));
 }
 
 /**
  *  Get parents for taxonomy term reference fields
  */
-function autobread_get_entity_taxonomy( $entity_type, $entity, $entity_name ) {                                      
+function autobread_get_entity_taxonomy($entity_type, $entity, $entity_name) {                                      
   $type_info = field_info_instances($entity_type, $entity_name);        
 
-  foreach ( $type_info as $item ) {
-    if ( in_array( $item['widget']['type'], array('options_select','options_buttons')) ) {   
-         $field_name = $item['field_name'];
-         $field_info = field_info_field( $field_name ); 
-         if ( $field_info['type'] == 'taxonomy_term_reference' ) {      
-              $field = field_get_items($entity_type, $entity, $field_name);  
-              if ( !empty($field) && count($field) ) {
-                 $res = array();
-                 foreach ($field as $val)  {
-                   $res1 = taxonomy_get_parents_all($val['tid']);
-                   //$res = array_merge($res,$res1);
-                   $res[] = $res1;
-                 };
-                 return $res;
-              }
-         }
+  foreach ($type_info as $item) {
+    if (in_array( $item['widget']['type'], array('options_select','options_buttons'))) {   
+      $field_name = $item['field_name'];
+      $field_info = field_info_field( $field_name ); 
+      if ($field_info['type'] == 'taxonomy_term_reference') {      
+        $field = field_get_items($entity_type, $entity, $field_name);  
+        if (!empty($field) && count($field)) {
+          $res = array();
+          foreach ($field as $val)  {
+            $res1 = taxonomy_get_parents_all($val['tid']);
+            //$res = array_merge($res,$res1);
+            $res[] = $res1;
+          };
+          return $res;
+        }
+      }
     }
   }
 
@@ -140,75 +138,75 @@ function autobread_get_entity_taxonomy( $entity_type, $entity, $entity_name ) {
 /**
  *  Set breadcrumbs
  */
-function autobread_set_bread ( $arr ) {
-   $bread = array();
+function autobread_set_bread ($arr) {
+  $bread = array();
 
-   if ( variable_get('autobread_set_frontpage', TRUE) ) {
-     $bread[] = l(t('Home'), '<front>');
-   }
+  if (variable_get('autobread_set_frontpage', TRUE)) {
+    $bread[] = l(t('Home'), '<front>');
+  }
 
-   $arr = array_reverse($arr);
-   $bread = array_merge($bread, $arr);
-   drupal_set_breadcrumb( $bread );
+  $arr = array_reverse($arr);
+  $bread = array_merge($bread, $arr);
+  drupal_set_breadcrumb($bread);
 }
 
 /**
  *  Set taxonomy breadcrumbs
  */
 function autobread_set_taxonomy_bread($tax, $init_crumb = array()) {
-   $bread = array();
+  $bread = array();
 
-   if ( variable_get('autobread_set_frontpage', TRUE) ) {
-     $bread[] = l(t('Home'), '<front>');
-   }
+  if (variable_get('autobread_set_frontpage', TRUE)) {
+    $bread[] = l(t('Home'), '<front>');
+  }
 
    //Taxonomy
-   $bread_tax = array();
-   if ( count($tax) > 0 ) {
-     $bread_tax = _autobread_make_simple_array(array_reverse($tax));
+  $bread_tax = array();
+  if (count($tax) > 0) {
+    $bread_tax = _autobread_make_simple_array(array_reverse($tax));
 
-     //Multiple
-     $bread_tax1 = array();
-     foreach ($bread_tax as $tax) {
-       if (is_array($tax)) {
-         foreach ($tax as $tax2) {
-           $bread_tax1[] = $tax2;
-         }
+    //Multiple
+    $bread_tax1 = array();
+    foreach ($bread_tax as $tax) {
+      if (is_array($tax)) {
+        foreach ($tax as $tax2) {
+          $bread_tax1[] = $tax2;
+        }
        }
      }
-     if (count($bread_tax1)) {
-       $bread_tax = array( implode("," , array_reverse($bread_tax1)) );
-     }
+    if (count($bread_tax1)) {
+      $bread_tax = array( implode("," , array_reverse($bread_tax1)) );
+    }
 
    }
 
-   if ( variable_get('autobread_set_title', FALSE) ) {
-     $title = drupal_get_title();
-     $bread_tax[] = $title;
-   }
+  if (variable_get('autobread_set_title', FALSE)) {
+    $title = drupal_get_title();
+    $bread_tax[] = $title;
+  }
 
-   $bread = array_merge($bread, $init_crumb, $bread_tax);
-   drupal_set_breadcrumb( $bread );
+  $bread = array_merge($bread, $init_crumb, $bread_tax);
+  drupal_set_breadcrumb($bread);
 }
 
 /**
  *  Make array for breadcrumbs
  */
-function _autobread_make_simple_array( $arr ) {  
-   $res = array();
-   foreach ($arr as $item) {
-     if (is_array($item)) {
-       $res2 = array();
-       foreach ($item as $item2) {
-         $res2[] = l( $item2->name, "taxonomy/term/".$item2->tid );
+function _autobread_make_simple_array($arr) {  
+  $res = array();
+  foreach ($arr as $item) {
+    if (is_array($item)) {
+      $res2 = array();
+      foreach ($item as $item2) {
+        $res2[] = l($item2->name, "taxonomy/term/".$item2->tid);
        }
-       $res[] = $res2;
-     }
-     else {
-       $res[] = l( $item->name, "taxonomy/term/".$item->tid );
-     }
-   }
-   return $res; 
+      $res[] = $res2;
+    }
+    else {
+      $res[] = l($item->name, "taxonomy/term/".$item->tid);
+    }
+  }
+  return $res; 
 }
 
 /**
@@ -265,17 +263,17 @@ function autobread_get_title($path) {
  *  Get title from view
  */
 function autobread_get_view_title($view, $display) {
-    $title = FALSE;
-    if (is_object($view) && !empty($view->display[$display])) {
-      if (isset($view->display[$display]->display_options['title'])) {
-        $title = $view->display[$display]->display_options['title'];
-      }
-      else {
-        if (empty($title)) $title = $view->display[$display]->display_title;
-        if (!empty($title)) return $title;
-      }
+  $title = FALSE;
+  if (is_object($view) && !empty($view->display[$display])) {
+    if (isset($view->display[$display]->display_options['title'])) {
+      $title = $view->display[$display]->display_options['title'];
     }
-    return title;
+    else {
+      if (empty($title)) $title = $view->display[$display]->display_title;
+      if (!empty($title)) return $title;
+    }
+  }
+  return $title;
 }
 
 /**
