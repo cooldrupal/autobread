@@ -43,10 +43,14 @@ function autobread_page_delivery_callback_alter() {
 
    //Node
    if ($arg0 == 'node' && is_numeric($arg1)) {
-      if ( $node = node_load($arg1)) {
+      if ($node = node_load($arg1)) {
         $res = autobread_get_entity_taxonomy('node', $node, $node->type);
         $page_type = array();
-        if (drupal_valid_path($node->type)) $page_type[] = l(node_type_get_name($node), $node->type);
+        if (drupal_valid_path($node->type)) {
+          $title = autobread_get_title($node->type);
+          if (!$title) $title = node_type_get_name($node);
+          $page_type[] = l($title, $node->type);
+        }
 
         if (count($res) && count($page_type)) {
           autobread_set_taxonomy_bread($res, $page_type);
@@ -122,9 +126,7 @@ function autobread_get_entity_taxonomy($entity_type, $entity, $entity_name) {
         if (!empty($field) && count($field)) {
           $res = array();
           foreach ($field as $val)  {
-            $res1 = taxonomy_get_parents_all($val['tid']);
-            //$res = array_merge($res,$res1);
-            $res[] = $res1;
+            $res[] = taxonomy_get_parents_all($val['tid']);
           };
           return $res;
         }
@@ -175,14 +177,16 @@ function autobread_set_taxonomy_bread($tax, $init_crumb = array()) {
        }
      }
     if (count($bread_tax1)) {
-      $bread_tax = array( implode("," , array_reverse($bread_tax1)) );
+      $bread_tax = array(implode("," , array_reverse($bread_tax1)));
     }
 
    }
 
   if (variable_get('autobread_set_title', FALSE)) {
     $title = drupal_get_title();
-    $bread_tax[] = $title;
+    if ($title) {
+      $bread_tax[] = $title;
+    }
   }
 
   $bread = array_merge($bread, $init_crumb, $bread_tax);
@@ -198,12 +202,12 @@ function _autobread_make_simple_array($arr) {
     if (is_array($item)) {
       $res2 = array();
       foreach ($item as $item2) {
-        $res2[] = l($item2->name, "taxonomy/term/".$item2->tid);
+        $res2[] = l($item2->name, "taxonomy/term/" . $item2->tid);
        }
       $res[] = $res2;
     }
     else {
-      $res[] = l($item->name, "taxonomy/term/".$item->tid);
+      $res[] = l($item->name, "taxonomy/term/" . $item->tid);
     }
   }
   return $res; 
@@ -291,7 +295,7 @@ function autobread_theme_registry_alter(&$theme_registry) {
  *   Contains array with breadcrumbs.
  *
  * @return bool|string
- *   Rendered breadcrumbs or FALSE for no breadcrumbs.
+ *   Rendered breadcrumbs or NULL for no breadcrumbs.
  */
 function autobread_breadcrumb($variables) {
   $breadcrumb = $variables['breadcrumb'];

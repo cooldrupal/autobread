@@ -17,14 +17,12 @@ function autobread_settings_form($form, &$form_state) {
     '#default_value' => variable_get('autobread_set_frontpage', TRUE),
     '#description' => t('If checked, Autobread will set the frontpage link.'),
   );
-
   $form['autobread_set_title'] = array(
     '#type' => 'checkbox',
     '#title' => t('Set page title'),
     '#default_value' => variable_get('autobread_set_title', FALSE),
     '#description' => t('If checked, Autobread will set the current page title if does not exists.'),
   );
-
   $form['autobread_delimiter'] = array(
     '#type' => 'textfield',
     '#title' => t('Delimiter'),
